@@ -1,17 +1,18 @@
 export const metadata = {
-  title: "Shiba Board Game",
-  description: "Play a cute shiba-themed board game!",
+  title: 'Shiba Board Game',
+  description: "Happy Birthday Dad! 🐶🎉",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head />
-      <body>{children}</body>
+      <body>
+        <h1 style={{ textAlign: 'center', color: 'orange' }}>
+          🎉 Happy Birthday, Dad! 🎉
+        </h1>
+        {children}
+      </body>
     </html>
   );
 }
