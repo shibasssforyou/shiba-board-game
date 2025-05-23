@@ -2,140 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🐕 Shiba’s Park Quest ⋆.ೃ࿔*:･</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      margin: 0;
       font-family: "Comic Sans MS", cursive, sans-serif;
-      background: linear-gradient(to bottom right, #fff5e1, #ffe5f0);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      min-height: 100vh;
+      background: linear-gradient(to bottom, #fff7e6, #ffeedd);
+      margin: 0;
+      padding: 0;
+      text-align: center;
     }
-
     h1 {
-      color: #ff914d;
       font-size: 2.5em;
+      color: #ff914d;
       margin: 0.5em 0 0.2em;
     }
-
-    .banner {
+    h2 {
+      margin-top: 0;
       font-size: 1.2em;
-      margin-bottom: 1em;
     }
-
-    #menu-container {
-      text-align: center;
-      margin-top: 4em;
+    #menu-container, #controls {
+      margin: 1em auto;
     }
-
-    #board {
-      display: none;
-      grid-template-columns: repeat(10, 50px);
-      gap: 6px;
-      margin-top: 2em;
-    }
-
-    .tile {
-      background: white;
-      border: 2px solid #ccc;
-      width: 50px;
-      height: 50px;
-      text-align: center;
-      font-size: 12px;
-      position: relative;
-      transition: background 0.3s;
-    }
-
-    .tile.active {
-      background: #fbeacc;
-      box-shadow: 0 0 6px #ffd699;
-    }
-
-    .special {
-      font-size: 10px;
-      position: absolute;
-      bottom: 2px;
-      left: 2px;
-      right: 2px;
-    }
-
-    .player {
-      font-size: 20px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-    }
-
-    .paw {
-      font-size: 16px;
-      position: absolute;
-      top: 16px;
-      animation: fadeOut 2s forwards;
-    }
-
-    @keyframes fadeOut {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    .button {
-      background: #ff914d;
-      color: white;
+    button {
+      padding: 0.7em 1.2em;
+      margin: 0.5em;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background-color: #ff914d;
       border: none;
-      padding: 10px 20px;
-      margin: 6px;
-      border-radius: 10px;
-      cursor: pointer;
+      border-radius: 8px;
+      color: white;
       font-size: 1em;
+      cursor: pointer;
     }
-
-    #controls {
-      margin-top: 1em;
+    button:hover {
+      background-color: #ff752f;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      max-width: 90vw;
+      margin: 0 auto;
+      padding: 1em;
+    }
+    .tile {
+      background-color: white;
+      border: 2px solid #ccc;
+      height: 60px;
+      position: relative;
+      transition: background-color 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .tile.active {
+      background-color: #fbe7c6;
+      box-shadow: 0 0 10px #ff914d;
+    }
+    .special {
+      font-size: 0.7em;
+    }
+    .player {
+      font-size: 1.5em;
+    }
+    .paw {
+      font-size: 1.2em;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+    .fade {
+      opacity: 0;
+    }
+    audio {
       display: none;
-      text-align: center;
-    }
-
-    #message {
-      margin: 1em;
-      font-size: 1.1em;
-    }
-
-    #volume-slider {
-      width: 150px;
     }
   </style>
 </head>
 <body>
   <h1>🐕 Shiba’s Park Quest ⋆.ೃ࿔*:･</h1>
-  <div class="banner">🎂 Happy Birthday, Dad! 𝜗𝜚</div>
+  <h2>🎂 Happy Birthday, Dad! 𝜗𝜚</h2>
 
   <div id="menu-container">
     <p>Select number of players:</p>
-    <button class="button" onclick="startGame(1)">1 Player</button>
-    <button class="button" onclick="startGame(2)">2 Players</button>
-    <br/>
-    <button class="button" onclick="toggleMusic()" id="mute-button">🔇 Mute Music</button>
-    <input type="range" id="volume-slider" min="0" max="1" step="0.01" onchange="adjustVolume()" value="0.5" />
+    <button onclick="startGame(1)">1 Player</button>
+    <button onclick="startGame(2)">2 Players</button><br>
+    <button onclick="toggleMusic()">🔇 Mute Music</button>
+    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="adjustVolume()" />
   </div>
 
+  <div id="controls" style="display:none;">
+    <button onclick="rollDice()">🎲 Roll Dice</button>
+    <button onclick="restartGame()">🔁 Replay</button>
+    <button onclick="goToMenu()">🏠 Main Menu</button>
+  </div>
+
+  <p id="message"></p>
   <div id="board"></div>
 
-  <div id="controls">
-    <div id="message"></div>
-    <button class="button" onclick="rollDice()">🎲 Roll Dice</button>
-    <button class="button" onclick="restartGame()">🔁 Replay</button>
-    <button class="button" onclick="location.reload()">🏠 Main Menu</button>
-  </div>
-
-  <audio id="menu-music" src="https://cdn.pixabay.com/audio/2022/03/16/audio_a71bb6c7f4.mp3" loop autoplay></audio>
-  <audio id="roll-sound" src="https://cdn.pixabay.com/audio/2022/03/02/audio_d0f7c208d7.mp3"></audio>
-  <audio id="win-sound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_881f2e31a0.mp3"></audio>
-  <audio id="tile-sound" src="https://cdn.pixabay.com/audio/2022/10/26/audio_3e72b2cbb4.mp3"></audio>
+  <audio id="roll-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_736f66c3a6.mp3"></audio>
+  <audio id="win-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7e3e58de9f.mp3"></audio>
+  <audio id="tile-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_bbdc66c4c3.mp3"></audio>
+  <audio id="menu-music" src="https://cdn.pixabay.com/audio/2022/06/15/audio_dcb1fc63cc.mp3" loop autoplay></audio>
 
   <script>
     const BOARD_SIZE = 10;
@@ -147,17 +116,17 @@
     let isMuted = false;
 
     const TILE_EFFECTS = {
-      4: "🍖 Snack! Forward 2 tiles",
-      8: "💦 Mud puddle! Go back 1 tile",
-      13: "🦋 Distracted! Skip next turn",
-      19: "🐿️ Squirrel! Forward 3 tiles",
-      23: "✨ Magic tile! Go to end",
-      31: "🪵 Tripped! Go back 2 tiles",
-      44: "🍩 Treat stash! Forward 4 tiles",
-      56: "🐾 Found a friend! Skip forward 1 tile",
-      72: "🪙 Lost a toy! Go back 3 tiles",
-      88: "🚫 Fence! Skip next turn",
-      95: "🌟 Zoomies! Forward 5 tiles"
+      5: "🍖 Snack! Forward 2 tiles",
+      9: "💦 Mud puddle! Go back 1 tile",
+      14: "🦋 Distracted! Skip next turn",
+      20: "🐿️ Squirrel! Forward 3 tiles",
+      24: "✨ Magic tile! Go to end",
+      32: "🪵 Tripped! Go back 2 tiles",
+      45: "🍩 Treat stash! Forward 4 tiles",
+      57: "🐾 Found a friend! Skip forward 1 tile",
+      73: "🪙 Lost a toy! Go back 3 tiles",
+      89: "🚫 Fence! Skip next turn",
+      96: "🌟 Zoomies! Forward 5 tiles"
     };
 
     const board = document.getElementById("board");
@@ -173,12 +142,10 @@
     function toggleMusic() {
       isMuted = !isMuted;
       menuMusic.muted = isMuted;
-      document.getElementById("mute-button").textContent = isMuted ? "🔈 Unmute Music" : "🔇 Mute Music";
     }
 
     function adjustVolume() {
-      const volume = document.getElementById("volume-slider").value;
-      menuMusic.volume = volume;
+      menuMusic.volume = document.getElementById("volume-slider").value;
     }
 
     function drawBoard() {
@@ -195,18 +162,34 @@
           tile.appendChild(effect);
         }
 
-        positions.forEach((pos, index) => {
-          if (pos === i) {
-            tile.classList.add("active");
-            const icon = document.createElement("div");
-            icon.className = "player";
-            icon.textContent = index === 0 ? "🐕" : "🐩";
-            tile.appendChild(icon);
-          }
-        });
+        if (positions.includes(i)) {
+          tile.classList.add("active");
+          const icon = document.createElement("div");
+          icon.className = "player";
+          icon.textContent = positions.indexOf(i) === 0 ? "🐕" : "🐩";
+          tile.appendChild(icon);
+        }
 
         board.appendChild(tile);
       }
+    }
+
+    function animateMove(from, to, callback) {
+      let current = from;
+      const step = () => {
+        if (current === to) return callback();
+        current += (to > from ? 1 : -1);
+        positions[currentPlayer] = current;
+        drawBoard();
+        const tile = board.children[current];
+        const paw = document.createElement("div");
+        paw.textContent = "🐾";
+        paw.className = "paw";
+        tile.appendChild(paw);
+        setTimeout(() => paw.classList.add("fade"), 300);
+        setTimeout(step, 200);
+      };
+      step();
     }
 
     function startGame(players) {
@@ -217,12 +200,12 @@
       menuContainer.style.display = "none";
       board.style.display = "grid";
       controls.style.display = "block";
-      drawBoard();
       message.textContent = `Player ${currentPlayer + 1}, it's your turn!`;
+      drawBoard();
     }
 
     function rollDice() {
-      if (!isMuted) rollSound.play();
+      rollSound.play();
 
       if (skipTurns[currentPlayer]) {
         message.textContent = `Player ${currentPlayer + 1} was distracted! Turn skipped. 🦋`;
@@ -232,59 +215,42 @@
       }
 
       const roll = Math.floor(Math.random() * 6) + 1;
+      let pos = positions[currentPlayer];
+      let target = pos + roll;
+      if (target >= TOTAL_TILES) target = TOTAL_TILES - 1;
+
       message.textContent = `Player ${currentPlayer + 1} rolled a ${roll}!`;
-
-      let start = positions[currentPlayer];
-      let end = Math.min(start + roll, TOTAL_TILES - 1);
-
-      animateMove(start, end, () => {
-        let effect = TILE_EFFECTS[end];
-        if (effect) {
-          if (!isMuted) tileSound.play();
-          message.textContent += ` ${effect}`;
-          if (effect.includes("Forward 2")) end = Math.min(end + 2, TOTAL_TILES - 1);
-          if (effect.includes("Forward 3")) end = Math.min(end + 3, TOTAL_TILES - 1);
-          if (effect.includes("Forward 4")) end = Math.min(end + 4, TOTAL_TILES - 1);
-          if (effect.includes("Forward 5")) end = Math.min(end + 5, TOTAL_TILES - 1);
-          if (effect.includes("Go back 1")) end = Math.max(end - 1, 0);
-          if (effect.includes("Go back 2")) end = Math.max(end - 2, 0);
-          if (effect.includes("Go back 3")) end = Math.max(end - 3, 0);
-          if (effect.includes("Skip")) skipTurns[currentPlayer] = true;
-          if (effect.includes("Go to end")) end = TOTAL_TILES - 1;
-        }
-
-        positions[currentPlayer] = end;
-        drawBoard();
-
-        if (end === TOTAL_TILES - 1) {
-          if (!isMuted) winSound.play();
-          message.textContent = `🎉 Player ${currentPlayer + 1} reached the park and wins! 🐶`;
-          controls.style.display = "block";
-        } else {
-          nextPlayer();
-        }
-      });
+      animateMove(pos, target, () => applyTileEffects(target));
     }
 
-    function animateMove(start, end, callback) {
-      let step = start;
-      const interval = setInterval(() => {
-        if (step < end) step++;
-        else if (step > end) step--;
-        else {
-          clearInterval(interval);
-          callback();
-          return;
-        }
+    function applyTileEffects(pos) {
+      let target = pos;
+      const effect = TILE_EFFECTS[pos];
+      if (effect) {
+        tileSound.play();
+        message.textContent += ` ${effect}`;
+        if (effect.includes("Forward 2")) target = Math.min(target + 2, TOTAL_TILES - 1);
+        if (effect.includes("Forward 3")) target = Math.min(target + 3, TOTAL_TILES - 1);
+        if (effect.includes("Forward 4")) target = Math.min(target + 4, TOTAL_TILES - 1);
+        if (effect.includes("Forward 5")) target = Math.min(target + 5, TOTAL_TILES - 1);
+        if (effect.includes("Go back 1")) target = Math.max(target - 1, 0);
+        if (effect.includes("Go back 2")) target = Math.max(target - 2, 0);
+        if (effect.includes("Go back 3")) target = Math.max(target - 3, 0);
+        if (effect.includes("Skip")) skipTurns[currentPlayer] = true;
+        if (effect.includes("Go to end")) target = TOTAL_TILES - 1;
+      }
 
-        positions[currentPlayer] = step;
-        drawBoard();
-        const tile = board.children[step];
-        const paw = document.createElement("div");
-        paw.className = "paw";
-        paw.textContent = "🐾";
-        tile.appendChild(paw);
-      }, 300);
+      positions[currentPlayer] = target;
+      drawBoard();
+
+      if (target === TOTAL_TILES - 1) {
+        winSound.play();
+        message.textContent = `🎉 Player ${currentPlayer + 1} reached the park and wins! 🐶`;
+        controls.style.display = "none";
+        return;
+      }
+
+      nextPlayer();
     }
 
     function nextPlayer() {
@@ -294,6 +260,10 @@
 
     function restartGame() {
       startGame(numPlayers);
+    }
+
+    function goToMenu() {
+      location.reload();
     }
   </script>
 </body>
