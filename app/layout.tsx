@@ -1,9 +1,19 @@
-export default function RootLayout({ children }) {
+export const metadata = {
+  title: "Shiba Board Game",
+  description: "Play a cute shiba-themed board game!",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html>
+    <html lang="en">
       <head />
       <body>{children}</body>
     </html>
   );
 }
+
 
