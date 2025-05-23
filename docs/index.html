@@ -117,10 +117,142 @@
 
   <!-- Game Script -->
   <script>
-    // The entire working script you already have
-    // (copied directly from your canvas)
-    // [pasted below ⬇️]
+    const BOARD_SIZE = 10;
+    const TOTAL_TILES = BOARD_SIZE * BOARD_SIZE;
+    let positions = [];
+    let currentPlayer = 0;
+    let skipTurns = [];
+    let numPlayers = 1;
+
+    const TILE_EFFECTS = {
+      4: "🍖 Snack! Forward 2 tiles",
+      8: "💦 Mud puddle! Go back 1 tile",
+      13: "🦋 Distracted! Skip next turn",
+      19: "🐿️ Squirrel! Forward 3 tiles",
+      23: "✨ Magic tile! Go to end",
+      31: "🪵 Tripped! Go back 2 tiles",
+      44: "🍩 Treat stash! Forward 4 tiles",
+      56: "🐾 Found a friend! Skip forward 1 tile",
+      72: "🪙 Lost a toy! Go back 3 tiles",
+      88: "🚫 Fence! Skip next turn",
+      95: "🌟 Zoomies! Forward 5 tiles"
+    };
+
+    const board = document.getElementById("board");
+    const message = document.getElementById("message");
+    const menuContainer = document.getElementById("menu-container");
+    const controls = document.getElementById("controls");
+
+    const rollSound = document.getElementById("roll-sound");
+    const winSound = document.getElementById("win-sound");
+    const tileSound = document.getElementById("tile-sound");
+    const menuMusic = document.getElementById("menu-music");
+    let isMuted = false;
+
+    function toggleMusic() {
+      isMuted = !isMuted;
+      menuMusic.muted = isMuted;
+      document.getElementById("mute-button").textContent = isMuted
+        ? "🔈 Unmute Music"
+        : "🔇 Mute Music";
+    }
+
+    function adjustVolume() {
+      const volume = document.getElementById("volume-slider").value;
+      menuMusic.volume = volume;
+    }
+
+    function drawBoard() {
+      board.innerHTML = "";
+      for (let i = 0; i < TOTAL_TILES; i++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.innerHTML = `<div>${i + 1}</div>`;
+
+        if (TILE_EFFECTS[i]) {
+          const effect = document.createElement("div");
+          effect.className = "special";
+          effect.textContent = TILE_EFFECTS[i];
+          tile.appendChild(effect);
+        }
+
+        positions.forEach((pos, index) => {
+          if (pos === i) {
+            const icon = document.createElement("div");
+            icon.className = "player";
+            icon.textContent = index === 0 ? "🐕" : "🐩";
+            tile.appendChild(icon);
+          }
+        });
+
+        board.appendChild(tile);
+      }
+    }
+
+    function startGame(players) {
+      numPlayers = players;
+      positions = new Array(players).fill(0);
+      skipTurns = new Array(players).fill(false);
+      currentPlayer = 0;
+      menuContainer.style.display = "none";
+      board.style.display = "grid";
+      controls.style.display = "block";
+      message.textContent = `Player ${currentPlayer + 1}, it's your turn!`;
+      drawBoard();
+    }
+
+    function rollDice() {
+      rollSound.play();
+
+      if (skipTurns[currentPlayer]) {
+        message.textContent = `Player ${currentPlayer + 1} was distracted! Turn skipped. 🦋`;
+        skipTurns[currentPlayer] = false;
+        nextPlayer();
+        return;
+      }
+
+      const roll = Math.floor(Math.random() * 6) + 1;
+      message.textContent = `Player ${currentPlayer + 1} rolled a ${roll}!`;
+
+      let pos = positions[currentPlayer] + roll;
+      if (pos >= TOTAL_TILES - 1) pos = TOTAL_TILES - 1;
+
+      if (TILE_EFFECTS[pos]) {
+        tileSound.play();
+        const effect = TILE_EFFECTS[pos];
+        message.textContent += ` ${effect}`;
+        if (effect.includes("Forward 2")) pos = Math.min(pos + 2, TOTAL_TILES - 1);
+        if (effect.includes("Forward 3")) pos = Math.min(pos + 3, TOTAL_TILES - 1);
+        if (effect.includes("Forward 4")) pos = Math.min(pos + 4, TOTAL_TILES - 1);
+        if (effect.includes("Forward 5")) pos = Math.min(pos + 5, TOTAL_TILES - 1);
+        if (effect.includes("Go back 1")) pos = Math.max(pos - 1, 0);
+        if (effect.includes("Go back 2")) pos = Math.max(pos - 2, 0);
+        if (effect.includes("Go back 3")) pos = Math.max(pos - 3, 0);
+        if (effect.includes("Skip")) skipTurns[currentPlayer] = true;
+        if (effect.includes("Go to end")) pos = TOTAL_TILES - 1;
+      }
+
+      positions[currentPlayer] = pos;
+      drawBoard();
+
+      if (pos === TOTAL_TILES - 1) {
+        winSound.play();
+        message.textContent = `🎉 Player ${currentPlayer + 1} reached the park and wins! 🐶`;
+        controls.style.display = "none";
+        return;
+      }
+
+      nextPlayer();
+    }
+
+    function nextPlayer() {
+      currentPlayer = (currentPlayer + 1) % numPlayers;
+      message.textContent += `\nPlayer ${currentPlayer + 1}, it's your turn!`;
+    }
+
+    function restartGame() {
+      location.reload();
+    }
   </script>
-  <!-- You can paste your script from Canvas in here or keep it inline -->
 </body>
 </html>
