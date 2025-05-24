@@ -23,14 +23,12 @@
 
   const board = document.getElementById("board");
   const message = document.getElementById("message");
-  const progressBars = document.getElementById("progress-bars");
-  const controls = document.getElementById("controls");
   const menuContainer = document.getElementById("menu-container");
+  const controls = document.getElementById("controls");
 
   const rollSound = document.getElementById("roll-sound");
   const winSound = document.getElementById("win-sound");
   const tileSound = document.getElementById("tile-sound");
-  const dogSound = document.getElementById("dog-sound");
   const menuMusic = document.getElementById("menu-music");
 
   function toggleMusic() {
@@ -40,7 +38,8 @@
   }
 
   function adjustVolume() {
-    menuMusic.volume = document.getElementById("volume-slider").value;
+    const volume = document.getElementById("volume-slider").value;
+    menuMusic.volume = volume;
   }
 
   function drawBoard() {
@@ -79,23 +78,6 @@
       finalTile.classList.remove("flash");
       finalTile.style.animation = "";
     }
-
-    drawProgressBars();
-  }
-
-  function drawProgressBars() {
-    progressBars.innerHTML = "";
-    positions.forEach((pos, i) => {
-      const percent = Math.floor((pos / (TOTAL_TILES - 1)) * 100);
-      const bar = document.createElement("div");
-      bar.innerHTML = `
-        <div style="font-size:14px;">Player ${i + 1}: ${TOTAL_TILES - 1 - pos} tiles left</div>
-        <div style="background:#eee;width:90%;margin:0 auto;height:12px;border-radius:6px;">
-          <div style="width:${percent}%;height:100%;background:#ff914d;border-radius:6px;"></div>
-        </div>
-      `;
-      progressBars.appendChild(bar);
-    });
   }
 
   function startGame(players) {
@@ -127,7 +109,6 @@
     message.textContent = `Player ${currentPlayer + 1} rolled a ${roll}!`;
 
     animateMove(currentPos, targetPos, () => {
-      if (!isMuted) dogSound.play();
       applyTileEffects(targetPos);
     });
   }
@@ -190,7 +171,7 @@
 
   function showStatus() {
     const tilesLeft = TOTAL_TILES - 1 - positions[currentPlayer];
-    message.textContent += `\nPlayer ${currentPlayer + 1}, you need ${tilesLeft} more tile${tilesLeft !== 1 ? "s" : ""}.`;
+    message.textContent += `\nPlayer ${currentPlayer + 1}, you need ${tilesLeft} more tile${tilesLeft > 1 ? "s" : ""}.`;
   }
 
   function restartGame() {
@@ -202,11 +183,27 @@
   }
 
   function launchConfetti() {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
-    script.onload = () => {
-      confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+    const confettiScript = document.createElement("script");
+    confettiScript.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
+    confettiScript.onload = () => {
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
     };
-    document.body.appendChild(script);
+    document.body.appendChild(confettiScript);
   }
 </script>
+
+<style>
+  @keyframes flashTile {
+    0% { background-color: #fff1cd; }
+    50% { background-color: #ffe08a; }
+    100% { background-color: #fff1cd; }
+  }
+  .fade {
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+</style>
