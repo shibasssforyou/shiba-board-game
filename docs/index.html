@@ -1,209 +1,270 @@
-<script>
-  const BOARD_SIZE = 10;
-  const TOTAL_TILES = BOARD_SIZE * BOARD_SIZE;
-  let positions = [];
-  let currentPlayer = 0;
-  let skipTurns = [];
-  let numPlayers = 1;
-  let isMuted = false;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🐕 Shiba’s Park Quest ⋆.ೃ࿔*:･</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: linear-gradient(to bottom, #fff7e6, #ffeedd);
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #ff914d;
+      margin: 0.5em 0 0.2em;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.2em;
+    }
+    #menu-container, #controls {
+      margin: 1em auto;
+    }
+    button {
+      padding: 0.7em 1.2em;
+      margin: 0.5em;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background-color: #ff914d;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff752f;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      max-width: 90vw;
+      margin: 0 auto;
+      padding: 1em;
+    }
+    .tile {
+      background-color: white;
+      border: 2px solid #ccc;
+      height: 60px;
+      position: relative;
+      transition: background-color 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .tile.active {
+      background-color: #fbe7c6;
+      box-shadow: 0 0 10px #ff914d;
+    }
+    .special {
+      font-size: 0.7em;
+    }
+    .player {
+      font-size: 1.5em;
+    }
+    .paw {
+      font-size: 1.2em;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+    .fade {
+      opacity: 0;
+    }
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐕 Shiba’s Park Quest ⋆.ೃ࿔*:･</h1>
+  <h2>🎂 Happy Birthday, Dad! 𝜗𝜚</h2>
 
-  const TILE_EFFECTS = {
-    4: "🍖 Snack! Forward 2 tiles",
-    8: "💦 Mud puddle! Go back 1 tile",
-    13: "🦋 Distracted! Skip next turn",
-    19: "🐿️ Squirrel! Forward 3 tiles",
-    23: "✨ Magic tile! Go to end",
-    31: "🪵 Tripped! Go back 2 tiles",
-    44: "🍩 Treat stash! Forward 4 tiles",
-    56: "🐾 Found a friend! Skip forward 1 tile",
-    72: "🪙 Lost a toy! Go back 3 tiles",
-    88: "🚫 Fence! Skip next turn",
-    95: "🌟 Zoomies! Forward 5 tiles"
-  };
+  <div id="menu-container">
+    <p>Select number of players:</p>
+    <button onclick="startGame(1)">1 Player</button>
+    <button onclick="startGame(2)">2 Players</button><br>
+    <button onclick="toggleMusic()">🔇 Mute Music</button>
+    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="adjustVolume()" />
+  </div>
 
-  const board = document.getElementById("board");
-  const message = document.getElementById("message");
-  const menuContainer = document.getElementById("menu-container");
-  const controls = document.getElementById("controls");
+  <div id="controls" style="display:none;">
+    <button onclick="rollDice()">🎲 Roll Dice</button>
+    <button onclick="restartGame()">🔁 Replay</button>
+    <button onclick="goToMenu()">🏠 Main Menu</button>
+  </div>
 
-  const rollSound = document.getElementById("roll-sound");
-  const winSound = document.getElementById("win-sound");
-  const tileSound = document.getElementById("tile-sound");
-  const menuMusic = document.getElementById("menu-music");
+  <p id="message"></p>
+  <div id="board"></div>
 
-  function toggleMusic() {
-    isMuted = !isMuted;
-    menuMusic.muted = isMuted;
-    document.getElementById("mute-button").textContent = isMuted ? "🔈 Unmute Music" : "🔇 Mute Music";
-  }
+  <audio id="roll-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_736f66c3a6.mp3"></audio>
+  <audio id="win-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7e3e58de9f.mp3"></audio>
+  <audio id="tile-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_bbdc66c4c3.mp3"></audio>
+  <audio id="menu-music" src="https://cdn.pixabay.com/audio/2022/06/15/audio_dcb1fc63cc.mp3" loop autoplay></audio>
 
-  function adjustVolume() {
-    const volume = document.getElementById("volume-slider").value;
-    menuMusic.volume = volume;
-  }
+  <script>
+    const BOARD_SIZE = 10;
+    const TOTAL_TILES = BOARD_SIZE * BOARD_SIZE;
+    let positions = [];
+    let currentPlayer = 0;
+    let skipTurns = [];
+    let numPlayers = 1;
+    let isMuted = false;
 
-  function drawBoard() {
-    board.innerHTML = "";
-    for (let i = 0; i < TOTAL_TILES; i++) {
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      tile.id = `tile-${i}`;
-      tile.innerHTML = `<div>${i + 1}</div>`;
+    const TILE_EFFECTS = {
+      5: "🍖 Snack! Forward 2 tiles",
+      9: "💦 Mud puddle! Go back 1 tile",
+      14: "🦋 Distracted! Skip next turn",
+      20: "🐿️ Squirrel! Forward 3 tiles",
+      24: "✨ Magic tile! Go to end",
+      32: "🪵 Tripped! Go back 2 tiles",
+      45: "🍩 Treat stash! Forward 4 tiles",
+      57: "🐾 Found a friend! Skip forward 1 tile",
+      73: "🪙 Lost a toy! Go back 3 tiles",
+      89: "🚫 Fence! Skip next turn",
+      96: "🌟 Zoomies! Forward 5 tiles"
+    };
 
-      if (TILE_EFFECTS[i]) {
-        const effect = document.createElement("div");
-        effect.className = "special";
-        effect.textContent = TILE_EFFECTS[i];
-        tile.appendChild(effect);
-      }
+    const board = document.getElementById("board");
+    const message = document.getElementById("message");
+    const menuContainer = document.getElementById("menu-container");
+    const controls = document.getElementById("controls");
 
-      positions.forEach((pos, index) => {
-        if (pos === i) {
+    const rollSound = document.getElementById("roll-sound");
+    const winSound = document.getElementById("win-sound");
+    const tileSound = document.getElementById("tile-sound");
+    const menuMusic = document.getElementById("menu-music");
+
+    function toggleMusic() {
+      isMuted = !isMuted;
+      menuMusic.muted = isMuted;
+    }
+
+    function adjustVolume() {
+      menuMusic.volume = document.getElementById("volume-slider").value;
+    }
+
+    function drawBoard() {
+      board.innerHTML = "";
+      for (let i = 0; i < TOTAL_TILES; i++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.innerHTML = `<div>${i + 1}</div>`;
+
+        if (TILE_EFFECTS[i]) {
+          const effect = document.createElement("div");
+          effect.className = "special";
+          effect.textContent = TILE_EFFECTS[i];
+          tile.appendChild(effect);
+        }
+
+        if (positions.includes(i)) {
           tile.classList.add("active");
           const icon = document.createElement("div");
           icon.className = "player";
-          icon.textContent = index === 0 ? "🐕" : "🐩";
+          icon.textContent = positions.indexOf(i) === 0 ? "🐕" : "🐩";
           tile.appendChild(icon);
         }
-      });
 
-      board.appendChild(tile);
+        board.appendChild(tile);
+      }
     }
 
-    const finalTile = document.getElementById(`tile-${TOTAL_TILES - 1}`);
-    if (positions[currentPlayer] === TOTAL_TILES - 2) {
-      finalTile.classList.add("flash");
-      finalTile.style.animation = "flashTile 1s infinite";
-    } else {
-      finalTile.classList.remove("flash");
-      finalTile.style.animation = "";
-    }
-  }
-
-  function startGame(players) {
-    numPlayers = players;
-    positions = new Array(players).fill(0);
-    skipTurns = new Array(players).fill(false);
-    currentPlayer = 0;
-    menuContainer.style.display = "none";
-    board.style.display = "grid";
-    controls.style.display = "block";
-    drawBoard();
-    showStatus();
-  }
-
-  function rollDice() {
-    if (!isMuted) rollSound.play();
-
-    if (skipTurns[currentPlayer]) {
-      message.textContent = `Player ${currentPlayer + 1} was distracted! Turn skipped. 🦋`;
-      skipTurns[currentPlayer] = false;
-      nextPlayer();
-      return;
+    function animateMove(from, to, callback) {
+      let current = from;
+      const step = () => {
+        if (current === to) return callback();
+        current += (to > from ? 1 : -1);
+        positions[currentPlayer] = current;
+        drawBoard();
+        const tile = board.children[current];
+        const paw = document.createElement("div");
+        paw.textContent = "🐾";
+        paw.className = "paw";
+        tile.appendChild(paw);
+        setTimeout(() => paw.classList.add("fade"), 300);
+        setTimeout(step, 200);
+      };
+      step();
     }
 
-    const roll = Math.floor(Math.random() * 6) + 1;
-    const currentPos = positions[currentPlayer];
-    const targetPos = Math.min(currentPos + roll, TOTAL_TILES - 1);
+    function startGame(players) {
+      numPlayers = players;
+      positions = new Array(players).fill(0);
+      skipTurns = new Array(players).fill(false);
+      currentPlayer = 0;
+      menuContainer.style.display = "none";
+      board.style.display = "grid";
+      controls.style.display = "block";
+      message.textContent = `Player ${currentPlayer + 1}, it's your turn!`;
+      drawBoard();
+    }
 
-    message.textContent = `Player ${currentPlayer + 1} rolled a ${roll}!`;
+    function rollDice() {
+      rollSound.play();
 
-    animateMove(currentPos, targetPos, () => {
-      applyTileEffects(targetPos);
-    });
-  }
-
-  function animateMove(start, end, callback) {
-    let step = start;
-    const interval = setInterval(() => {
-      if (step === end) {
-        clearInterval(interval);
-        callback();
+      if (skipTurns[currentPlayer]) {
+        message.textContent = `Player ${currentPlayer + 1} was distracted! Turn skipped. 🦋`;
+        skipTurns[currentPlayer] = false;
+        nextPlayer();
         return;
       }
-      step += 1;
-      positions[currentPlayer] = step;
-      drawBoard();
-      const tile = document.getElementById(`tile-${step}`);
-      const paw = document.createElement("div");
-      paw.className = "paw";
-      paw.textContent = "🐾";
-      tile.appendChild(paw);
-      setTimeout(() => paw.classList.add("fade"), 300);
-    }, 200);
-  }
 
-  function applyTileEffects(pos) {
-    let target = pos;
-    const effect = TILE_EFFECTS[pos];
+      const roll = Math.floor(Math.random() * 6) + 1;
+      let pos = positions[currentPlayer];
+      let target = pos + roll;
+      if (target >= TOTAL_TILES) target = TOTAL_TILES - 1;
 
-    if (effect) {
-      if (!isMuted) tileSound.play();
-      message.textContent += ` ${effect}`;
-      if (effect.includes("Forward 2")) target = Math.min(target + 2, TOTAL_TILES - 1);
-      if (effect.includes("Forward 3")) target = Math.min(target + 3, TOTAL_TILES - 1);
-      if (effect.includes("Forward 4")) target = Math.min(target + 4, TOTAL_TILES - 1);
-      if (effect.includes("Forward 5")) target = Math.min(target + 5, TOTAL_TILES - 1);
-      if (effect.includes("Go back 1")) target = Math.max(target - 1, 0);
-      if (effect.includes("Go back 2")) target = Math.max(target - 2, 0);
-      if (effect.includes("Go back 3")) target = Math.max(target - 3, 0);
-      if (effect.includes("Skip")) skipTurns[currentPlayer] = true;
-      if (effect.includes("Go to end")) target = TOTAL_TILES - 1;
+      message.textContent = `Player ${currentPlayer + 1} rolled a ${roll}!`;
+      animateMove(pos, target, () => applyTileEffects(target));
     }
 
-    positions[currentPlayer] = target;
-    drawBoard();
+    function applyTileEffects(pos) {
+      let target = pos;
+      const effect = TILE_EFFECTS[pos];
+      if (effect) {
+        tileSound.play();
+        message.textContent += ` ${effect}`;
+        if (effect.includes("Forward 2")) target = Math.min(target + 2, TOTAL_TILES - 1);
+        if (effect.includes("Forward 3")) target = Math.min(target + 3, TOTAL_TILES - 1);
+        if (effect.includes("Forward 4")) target = Math.min(target + 4, TOTAL_TILES - 1);
+        if (effect.includes("Forward 5")) target = Math.min(target + 5, TOTAL_TILES - 1);
+        if (effect.includes("Go back 1")) target = Math.max(target - 1, 0);
+        if (effect.includes("Go back 2")) target = Math.max(target - 2, 0);
+        if (effect.includes("Go back 3")) target = Math.max(target - 3, 0);
+        if (effect.includes("Skip")) skipTurns[currentPlayer] = true;
+        if (effect.includes("Go to end")) target = TOTAL_TILES - 1;
+      }
 
-    if (target === TOTAL_TILES - 1) {
-      if (!isMuted) winSound.play();
-      message.textContent = `🎉 Player ${currentPlayer + 1} reached the park and wins! 🐶`;
-      launchConfetti();
-      controls.style.display = "block";
-    } else {
-      showStatus();
+      positions[currentPlayer] = target;
+      drawBoard();
+
+      if (target === TOTAL_TILES - 1) {
+        winSound.play();
+        message.textContent = `🎉 Player ${currentPlayer + 1} reached the park and wins! 🐶`;
+        controls.style.display = "none";
+        return;
+      }
+
       nextPlayer();
     }
-  }
 
-  function nextPlayer() {
-    currentPlayer = (currentPlayer + 1) % numPlayers;
-  }
+    function nextPlayer() {
+      currentPlayer = (currentPlayer + 1) % numPlayers;
+      message.textContent += `\nPlayer ${currentPlayer + 1}, it's your turn!`;
+    }
 
-  function showStatus() {
-    const tilesLeft = TOTAL_TILES - 1 - positions[currentPlayer];
-    message.textContent += `\nPlayer ${currentPlayer + 1}, you need ${tilesLeft} more tile${tilesLeft > 1 ? "s" : ""}.`;
-  }
+    function restartGame() {
+      startGame(numPlayers);
+    }
 
-  function restartGame() {
-    startGame(numPlayers);
-  }
-
-  function showMenu() {
-    location.reload();
-  }
-
-  function launchConfetti() {
-    const confettiScript = document.createElement("script");
-    confettiScript.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js";
-    confettiScript.onload = () => {
-      confetti({
-        particleCount: 200,
-        spread: 100,
-        origin: { y: 0.6 }
-      });
-    };
-    document.body.appendChild(confettiScript);
-  }
-</script>
-
-<style>
-  @keyframes flashTile {
-    0% { background-color: #fff1cd; }
-    50% { background-color: #ffe08a; }
-    100% { background-color: #fff1cd; }
-  }
-  .fade {
-    opacity: 0;
-    transition: opacity 1s ease;
-  }
-</style>
+    function goToMenu() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
